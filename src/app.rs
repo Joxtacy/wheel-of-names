@@ -1,10 +1,18 @@
+use core::panic;
 use std::{error, fs::File, io::Read};
 
+use clap::Parser;
 use rand::{thread_rng, Rng};
 use ratatui::widgets::ListState;
 
 /// Application result type.
 pub type AppResult<T> = std::result::Result<T, Box<dyn error::Error>>;
+
+#[derive(Parser)]
+#[command(version, about, long_about = None)]
+pub struct Cli {
+    names: Option<String>,
+}
 
 #[derive(Debug)]
 pub enum CurrentScreen {
@@ -97,13 +105,18 @@ impl<T: Clone> StatefulList<T> {
 
 impl Default for App {
     fn default() -> Self {
-        let res = File::open("participants.txt");
+        let cli = Cli::parse();
 
-        let names = if let Ok(mut file) = res {
-            let mut contents = String::new();
-            file.read_to_string(&mut contents)
-                .expect("to be able to read from file");
-            contents.lines().map(|s| s.to_string()).collect()
+        let names = if let Some(names) = cli.names {
+            let res = File::open(&names);
+            if let Ok(mut file) = res {
+                let mut contents = String::new();
+                file.read_to_string(&mut contents)
+                    .expect("to be able to read from file");
+                contents.lines().map(|s| s.to_string()).collect()
+            } else {
+                panic!("Could not open file: {}", &names);
+            }
         } else {
             vec![
                 "Lisa".to_string(),
