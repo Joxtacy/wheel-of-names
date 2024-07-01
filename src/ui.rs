@@ -1,8 +1,10 @@
 use ratatui::{
     layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Color, Style, Stylize},
+    symbols::Marker,
     widgets::{
-        Bar, BarChart, BarGroup, Block, BorderType, Borders, List, ListItem, Padding, Paragraph,
+        canvas::{Canvas, Line},
+        Block, BorderType, Borders, List, ListItem, Padding, Paragraph,
     },
     Frame,
 };
@@ -77,45 +79,41 @@ fn render_title(frame: &mut Frame, area: Rect) {
 }
 
 fn render_wheel(app: &mut App, frame: &mut Frame, area: Rect) {
-    let bar_width = area.width / app.wheel_data.len() as u16;
-    let middle_bar = (area.width / (bar_width + 1)) as usize / 2;
-
     let wheel = Block::default()
         .title("Wheel")
         .title_alignment(Alignment::Center);
 
-    let bars: Vec<Bar> = app
-        .wheel_data
-        .iter()
-        .enumerate()
-        .map(|(index, (label, value))| {
-            Bar::default()
-                .value(*value)
-                .text_value("".into())
-                .label(label.to_string().into())
-                .style(if index == middle_bar {
-                    Style::default().fg(Color::Green)
-                } else {
-                    Style::default().fg(Color::Yellow)
-                })
-                .value_style(if index == middle_bar {
-                    Style::default().fg(Color::Green).bg(Color::Green)
-                } else {
-                    Style::default().fg(Color::Yellow).bg(Color::Yellow)
-                })
-        })
-        .collect();
+    let middle = (0.0, 0.0);
+    let radius = 10.0;
 
-    let bar_group = BarGroup::default().bars(&bars);
-
-    let bar_chart = BarChart::default()
+    let canvas = Canvas::default()
         .block(wheel)
-        .data(bar_group)
-        .max(30)
-        .label_style(Style::default().fg(Color::Black))
-        .bar_width(bar_width);
+        .marker(Marker::Braille)
+        .paint(|ctx| {
+            let lines = 10;
+            for i in 0..lines {
+                let dangle = 360.0 * i as f64 / lines as f64;
+                let dx = radius * (dangle + app.angle).to_radians().sin();
+                let dy = radius * (dangle + app.angle).to_radians().cos();
+                ctx.draw(&Line::new(
+                    middle.0,
+                    middle.1,
+                    middle.0 + dx,
+                    middle.1 + dy,
+                    match i % 2 {
+                        0 => Color::Yellow,
+                        1 => Color::Green,
+                        2 => Color::Blue,
+                        3 => Color::Red,
+                        _ => Color::White,
+                    },
+                ));
+            }
+        })
+        .x_bounds([-10.0 * 1.25, 10.0 * 1.25])
+        .y_bounds([-10.0, 10.0]);
 
-    frame.render_widget(bar_chart, area);
+    frame.render_widget(canvas, area);
 }
 
 fn render_names(app: &mut App, frame: &mut Frame, area: Rect) {
