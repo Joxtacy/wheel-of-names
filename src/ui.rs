@@ -1,7 +1,9 @@
 use ratatui::{
     layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Color, Style, Stylize},
-    widgets::{Block, BorderType, Borders, List, ListItem, Padding, Paragraph},
+    widgets::{
+        Bar, BarChart, BarGroup, Block, BorderType, Borders, List, ListItem, Padding, Paragraph,
+    },
     Frame,
 };
 
@@ -31,7 +33,7 @@ pub fn render(app: &mut App, frame: &mut Frame) {
         .areas(sub_area);
 
     render_title(frame, title_area);
-    render_wheel(frame, wheel_area);
+    render_wheel(app, frame, wheel_area);
     render_status(app, frame, left_area);
     render_help(frame, right_area);
     render_names(app, frame, left_side);
@@ -74,11 +76,46 @@ fn render_title(frame: &mut Frame, area: Rect) {
     frame.render_widget(title, area);
 }
 
-fn render_wheel(frame: &mut Frame, area: Rect) {
+fn render_wheel(app: &mut App, frame: &mut Frame, area: Rect) {
+    let bar_width = area.width / app.wheel_data.len() as u16;
+    let middle_bar = (area.width / (bar_width + 1)) as usize / 2;
+
     let wheel = Block::default()
         .title("Wheel")
         .title_alignment(Alignment::Center);
-    frame.render_widget(wheel, area);
+
+    let bars: Vec<Bar> = app
+        .wheel_data
+        .iter()
+        .enumerate()
+        .map(|(index, (label, value))| {
+            Bar::default()
+                .value(*value)
+                .text_value("".into())
+                .label(label.to_string().into())
+                .style(if index == middle_bar {
+                    Style::default().fg(Color::Green)
+                } else {
+                    Style::default().fg(Color::Yellow)
+                })
+                .value_style(if index == middle_bar {
+                    Style::default().fg(Color::Green).bg(Color::Green)
+                } else {
+                    Style::default().fg(Color::Yellow).bg(Color::Yellow)
+                })
+        })
+        .collect();
+
+    let bar_group = BarGroup::default().bars(&bars);
+
+    let bar_chart = BarChart::default()
+        .block(wheel)
+        .data(bar_group)
+        .max(30)
+        .label_style(Style::default().fg(Color::Black))
+        .bar_width(bar_width);
+
+    frame.render_widget(bar_chart, area);
 }
 
 fn render_names(app: &mut App, frame: &mut Frame, area: Rect) {

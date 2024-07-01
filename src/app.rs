@@ -27,7 +27,7 @@ pub enum CurrentlyEditing {
 
 /// Application.
 #[derive(Debug)]
-pub struct App {
+pub struct App<'a> {
     /// Is the application running?
     pub running: bool,
     /// Is the application spinning?
@@ -42,6 +42,8 @@ pub struct App {
     pub current_screen: CurrentScreen,
     pub currently_editing: Option<CurrentlyEditing>,
     pub name_input: String,
+
+    pub wheel_data: Vec<(&'a str, u64)>,
 }
 
 #[derive(Debug)]
@@ -103,7 +105,7 @@ impl<T: Clone> StatefulList<T> {
     }
 }
 
-impl Default for App {
+impl Default for App<'_> {
     fn default() -> Self {
         let cli = Cli::parse();
 
@@ -141,11 +143,37 @@ impl Default for App {
             current_screen: CurrentScreen::Main,
             currently_editing: None,
             name_input: String::new(),
+            wheel_data: vec![
+                ("B1", 1),
+                ("B2", 2),
+                ("B3", 3),
+                ("B4", 4),
+                ("B5", 5),
+                ("B6", 6),
+                ("B7", 7),
+                ("B8", 8),
+                ("B9", 9),
+                ("B10", 10),
+                ("B11", 11),
+                ("B12", 12),
+                ("B13", 13),
+                ("B14", 12),
+                ("B15", 11),
+                ("B16", 10),
+                ("B17", 9),
+                ("B18", 8),
+                ("B19", 7),
+                ("B20", 6),
+                ("B21", 5),
+                ("B22", 4),
+                ("B23", 3),
+                ("B24", 2),
+            ],
         }
     }
 }
 
-impl App {
+impl App<'_> {
     /// Constructs a new instance of [`App`].
     pub fn new() -> Self {
         Self::default()
@@ -208,6 +236,8 @@ impl App {
     pub fn tick(&mut self) {
         if self.spinning {
             self.spin_round();
+            let a = self.wheel_data.pop().unwrap();
+            self.wheel_data.insert(0, a);
         }
     }
 
