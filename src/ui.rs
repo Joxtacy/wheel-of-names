@@ -119,14 +119,6 @@ fn render_wheel(app: &mut App, frame: &mut Frame, area: Rect) {
                     ));
                 }
                 ctx.draw(&Line::new(0.0, 10.0, 0.0, 9.0, Color::Green));
-                /*
-                                ctx.draw(&Circle {
-                                    x: middle.0,
-                                    y: middle.1,
-                                    radius,
-                                    color: Color::Yellow,
-                                })
-                */
             }
         })
         .x_bounds([-10.0 * 1.25, 10.0 * 1.25])
