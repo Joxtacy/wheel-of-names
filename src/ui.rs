@@ -90,24 +90,43 @@ fn render_wheel(app: &mut App, frame: &mut Frame, area: Rect) {
         .block(wheel)
         .marker(Marker::Braille)
         .paint(|ctx| {
-            let lines = 10;
+            let lines = app.all_participants.items.len() * 2;
             for i in 0..lines {
                 let dangle = 360.0 * i as f64 / lines as f64;
-                let dx = radius * (dangle + app.angle).to_radians().sin();
-                let dy = radius * (dangle + app.angle).to_radians().cos();
-                ctx.draw(&Line::new(
-                    middle.0,
-                    middle.1,
-                    middle.0 + dx,
-                    middle.1 + dy,
-                    match i % 2 {
-                        0 => Color::Yellow,
-                        1 => Color::Green,
-                        2 => Color::Blue,
-                        3 => Color::Red,
-                        _ => Color::White,
-                    },
-                ));
+                if i % 2 == 1 {
+                    let dx = radius / 1.25 * (dangle + app.angle).to_radians().sin();
+                    let dy = radius / 1.25 * (dangle + app.angle).to_radians().cos();
+                    ctx.print(
+                        middle.0 + dx,
+                        middle.1 + dy,
+                        app.all_participants.items[i / 2].clone().yellow(),
+                    );
+                } else {
+                    let dx = radius * (dangle + app.angle).to_radians().sin();
+                    let dy = radius * (dangle + app.angle).to_radians().cos();
+                    ctx.draw(&Line::new(
+                        middle.0,
+                        middle.1,
+                        middle.0 + dx,
+                        middle.1 + dy,
+                        match i % 2 {
+                            0 => Color::Yellow,
+                            1 => Color::Green,
+                            2 => Color::Blue,
+                            3 => Color::Red,
+                            _ => Color::White,
+                        },
+                    ));
+                }
+                ctx.draw(&Line::new(0.0, 10.0, 0.0, 9.0, Color::Green));
+                /*
+                                ctx.draw(&Circle {
+                                    x: middle.0,
+                                    y: middle.1,
+                                    radius,
+                                    color: Color::Yellow,
+                                })
+                */
             }
         })
         .x_bounds([-10.0 * 1.25, 10.0 * 1.25])
