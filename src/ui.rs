@@ -101,7 +101,7 @@ fn render_wheel(app: &mut App, frame: &mut Frame, area: Rect) {
 
     let canvas = Canvas::default()
         .block(wheel)
-        .marker(Marker::Braille)
+        .marker(Marker::HalfBlock)
         .paint(|ctx| {
             let lines = app.all_participants.items.len() * 2;
             for i in 0..lines {
@@ -136,7 +136,7 @@ fn render_wheel(app: &mut App, frame: &mut Frame, area: Rect) {
                 ctx.draw(&Line::new(0.0, 10.0, 0.0, 9.0, Color::Green));
             }
         })
-        .x_bounds([-10.0 * 1.25, 10.0 * 1.25])
+        .x_bounds([-10.0 * 1.55, 10.0 * 1.55])
         .y_bounds([-10.0, 10.0]);
 
     frame.render_widget(canvas, area);
