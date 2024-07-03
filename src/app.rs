@@ -45,10 +45,14 @@ pub struct App {
 
     /// Angle in degrees
     pub angle: f64,
-    /// Change in angle each tick
+    /// Change in angle each tick. Variable
     pub d_angle: f64,
+    /// Default change in angle
+    pub angle_change: f64,
     /// Show contestants
     pub show_contestants: bool,
+    /// Number of times to spin
+    pub num_spins: usize,
 }
 
 #[derive(Debug)]
@@ -149,11 +153,13 @@ impl Default for App {
             all_winners: vec![],
             spinning: false,
             spin_count: 0,
+            num_spins: 0,
             current_screen: CurrentScreen::Main,
             currently_editing: None,
             name_input: String::new(),
             angle: 0.0,
-            d_angle: 7.5,
+            d_angle: 5.0,
+            angle_change: 5.0,
             show_contestants: true,
         }
     }
@@ -176,20 +182,25 @@ impl App {
 
         self.angle = self.index_to_angle(self.all_participants.state.selected().unwrap_or(0));
         let number_of_participants = self.all_participants.items.len();
-        let min_spins = number_of_participants * 3;
-        let max_spins = number_of_participants * 6;
+        let min_spins = (number_of_participants * 50).max(300);
+        let max_spins = (number_of_participants * 80).max(500);
 
         self.spin_count = thread_rng().gen_range(min_spins..max_spins);
+        self.num_spins = self.spin_count;
 
         self.spinning = true;
     }
 
     pub fn stop_spin(&mut self) {
         self.spinning = false;
+        self.num_spins = 0;
+        self.spin_count = 0;
+        self.d_angle = self.angle_change;
     }
 
     pub fn reset_spin(&mut self) {
         self.spin_count = 0;
+        self.num_spins = 0;
         self.stop_spin();
     }
 
@@ -202,6 +213,11 @@ impl App {
             self.spin_count -= 1;
             self.all_participants
                 .select(self.currently_winning_index().into());
+
+            // Slow down the spinner after half of the ticks
+            if self.spin_count < self.num_spins / 2 {
+                self.d_angle -= self.angle_change / (self.num_spins / 2) as f64;
+            }
             return;
         }
 
