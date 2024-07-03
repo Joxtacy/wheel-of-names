@@ -19,10 +19,21 @@ pub fn render(app: &mut App, frame: &mut Frame) {
         .constraints([Constraint::Length(3), Constraint::Min(0)])
         .areas(area);
 
-    let [left_side, main_area] = Layout::default()
+    let constraints = if app.show_contestants {
+        vec![Constraint::Ratio(1, 4), Constraint::Min(0)]
+    } else {
+        vec![Constraint::Min(0)]
+    };
+    let left_and_main = Layout::default()
         .direction(Direction::Horizontal)
-        .constraints([Constraint::Ratio(1, 4), Constraint::Min(0)])
-        .areas(main_area);
+        .constraints(constraints)
+        .split(main_area);
+
+    let (main_area, contestant_area) = if left_and_main.len() == 1 {
+        (left_and_main[0], None)
+    } else {
+        (left_and_main[1], Some(left_and_main[0]))
+    };
 
     let [wheel_area, sub_area] = Layout::default()
         .direction(Direction::Vertical)
@@ -38,7 +49,9 @@ pub fn render(app: &mut App, frame: &mut Frame) {
     render_wheel(app, frame, wheel_area);
     render_status(app, frame, left_area);
     render_help(frame, right_area);
-    render_names(app, frame, left_side);
+    if let Some(contestant_area) = contestant_area {
+        render_names(app, frame, contestant_area);
+    }
     render_winners(app, frame, middle_area);
 
     if let Some(editing) = &app.currently_editing {
@@ -161,6 +174,7 @@ fn render_help(frame: &mut Frame, area: Rect) {
         "j/down - Select next".into(),
         "k/up - Select previous".into(),
         "Del/x - Remove selected".into(),
+        "Tab - Show/hide contestants".into(),
     ])
     .block(help);
     frame.render_widget(help, area);

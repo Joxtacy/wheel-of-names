@@ -66,6 +66,9 @@ pub fn handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResult<()> {
                         app.currently_editing = Some(CurrentlyEditing::Name);
                     }
                 }
+                KeyCode::Tab => {
+                    app.toggle_contestants();
+                }
                 // Other handlers you could add here.
                 _ => {}
             }

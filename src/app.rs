@@ -47,6 +47,8 @@ pub struct App {
     pub angle: f64,
     /// Change in angle each tick
     pub d_angle: f64,
+    /// Show contestants
+    pub show_contestants: bool,
 }
 
 #[derive(Debug)]
@@ -148,6 +150,7 @@ impl Default for App {
             name_input: String::new(),
             angle: 0.0,
             d_angle: 7.5,
+            show_contestants: true,
         }
     }
 }
@@ -216,6 +219,10 @@ impl App {
         if self.angle > 360.0 {
             self.angle -= 360.0;
         }
+    }
+
+    pub fn toggle_contestants(&mut self) {
+        self.show_contestants = !self.show_contestants;
     }
 
     /// Handles the tick event of the terminal.
