@@ -112,7 +112,9 @@ fn render_wheel(app: &mut App, frame: &mut Frame, area: Rect) {
                     ctx.print(
                         middle.0 + dx,
                         middle.1 + dy,
-                        app.all_participants.items[i / 2].clone().yellow(),
+                        app.all_participants.items[app.all_participants.items.len() - 1 - (i / 2)] // reverse the list
+                            .clone()
+                            .yellow(),
                     );
                 } else {
                     let dx = radius * (dangle + app.angle).to_radians().sin();

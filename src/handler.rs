@@ -37,15 +37,21 @@ pub fn handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResult<()> {
                 KeyCode::Up | KeyCode::Char('k') => {
                     if !app.spinning {
                         app.all_participants.previous();
+                        app.angle =
+                            app.index_to_angle(app.all_participants.state.selected().unwrap_or(0));
                     }
                 }
                 KeyCode::Down | KeyCode::Char('j') => {
                     if !app.spinning {
                         app.all_participants.next();
+                        app.angle =
+                            app.index_to_angle(app.all_participants.state.selected().unwrap_or(0));
                     }
                 }
                 KeyCode::Enter | KeyCode::Char('s') => {
                     if !app.spinning {
+                        app.angle =
+                            app.index_to_angle(app.all_participants.state.selected().unwrap_or(0));
                         app.start_spin();
                     }
                 }

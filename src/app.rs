@@ -91,6 +91,10 @@ impl<T: Clone> StatefulList<T> {
         self.state.select(None);
     }
 
+    pub fn select(&mut self, i: Option<usize>) {
+        self.state.select(i);
+    }
+
     pub fn get_selected(&mut self) -> Option<T> {
         match self.state.selected() {
             Some(i) => Some(self.items[i].clone()),
@@ -170,6 +174,7 @@ impl App {
             self.all_participants.state.select(Some(0));
         }
 
+        self.angle = self.index_to_angle(self.all_participants.state.selected().unwrap_or(0));
         let number_of_participants = self.all_participants.items.len();
         let min_spins = number_of_participants * 3;
         let max_spins = number_of_participants * 6;
@@ -194,8 +199,9 @@ impl App {
         }
 
         if self.spin_count > 0 {
-            self.all_participants.next();
             self.spin_count -= 1;
+            self.all_participants
+                .select(self.currently_winning_index().into());
             return;
         }
 
@@ -203,6 +209,16 @@ impl App {
             self.all_winners.push(winner);
         }
         self.stop_spin();
+    }
+
+    pub fn currently_winning_index(&self) -> usize {
+        let d = 360.0 / self.all_participants.items.len() as f64;
+        (self.angle / d).floor() as usize
+    }
+
+    pub fn index_to_angle(&self, index: usize) -> f64 {
+        let d = 360.0 / self.all_participants.items.len() as f64;
+        d * index as f64 + d / 2.0
     }
 
     pub fn save_name(&mut self) {
@@ -216,7 +232,7 @@ impl App {
 
     pub fn increase_angle(&mut self) {
         self.angle += self.d_angle;
-        if self.angle > 360.0 {
+        if self.angle >= 360.0 {
             self.angle -= 360.0;
         }
     }
@@ -228,8 +244,8 @@ impl App {
     /// Handles the tick event of the terminal.
     pub fn tick(&mut self) {
         if self.spinning {
-            self.spin_round();
             self.increase_angle();
+            self.spin_round();
         }
     }
 
