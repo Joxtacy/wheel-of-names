@@ -107,8 +107,8 @@ fn render_wheel(app: &mut App, frame: &mut Frame, area: Rect) {
             for i in 0..lines {
                 let dangle = 360.0 * i as f64 / lines as f64;
                 if i % 2 == 1 {
-                    let dx = radius / 1.25 * (dangle + app.angle).to_radians().sin();
-                    let dy = radius / 1.25 * (dangle + app.angle).to_radians().cos();
+                    let dx = radius / 1.25 * (dangle + app.wheel.angle).to_radians().sin();
+                    let dy = radius / 1.25 * (dangle + app.wheel.angle).to_radians().cos();
                     ctx.print(
                         middle.0 + dx,
                         middle.1 + dy,
@@ -117,8 +117,8 @@ fn render_wheel(app: &mut App, frame: &mut Frame, area: Rect) {
                             .yellow(),
                     );
                 } else {
-                    let dx = radius * (dangle + app.angle).to_radians().sin();
-                    let dy = radius * (dangle + app.angle).to_radians().cos();
+                    let dx = radius * (dangle + app.wheel.angle).to_radians().sin();
+                    let dy = radius * (dangle + app.wheel.angle).to_radians().cos();
                     ctx.draw(&Line::new(
                         middle.0,
                         middle.1,
@@ -190,7 +190,7 @@ fn render_status(app: &mut App, frame: &mut Frame, area: Rect) {
         .borders(Borders::ALL)
         .border_type(BorderType::Rounded);
     let text = vec![
-        format!("Spins remaining: {}", app.spin_count).into(),
+        format!("Spins remaining: {}", app.wheel.spin_count).into(),
         format!(
             "Number of contestants: {}",
             app.all_participants.items.len()

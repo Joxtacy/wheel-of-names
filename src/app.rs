@@ -25,6 +25,32 @@ pub enum CurrentlyEditing {
     Name,
 }
 
+#[derive(Debug)]
+pub struct Wheel {
+    /// Number of times to spin
+    pub spin_count: usize,
+    /// Angle in degrees
+    pub angle: f64,
+    /// Change in angle each tick. Variable
+    pub d_angle: f64,
+    /// Default change in angle
+    pub angle_change: f64,
+    /// Number of times to spin
+    pub num_spins: usize,
+}
+
+impl Default for Wheel {
+    fn default() -> Self {
+        Self {
+            angle: 0.0,
+            d_angle: 5.0,
+            angle_change: 5.0,
+            spin_count: 0,
+            num_spins: 0,
+        }
+    }
+}
+
 /// Application.
 #[derive(Debug)]
 pub struct App {
@@ -32,8 +58,6 @@ pub struct App {
     pub running: bool,
     /// Is the application spinning?
     pub spinning: bool,
-    /// Number of times to spin
-    pub spin_count: usize,
     /// All winners
     pub all_winners: Vec<String>,
     /// All participants
@@ -43,16 +67,10 @@ pub struct App {
     pub currently_editing: Option<CurrentlyEditing>,
     pub name_input: String,
 
-    /// Angle in degrees
-    pub angle: f64,
-    /// Change in angle each tick. Variable
-    pub d_angle: f64,
-    /// Default change in angle
-    pub angle_change: f64,
     /// Show contestants
     pub show_contestants: bool,
-    /// Number of times to spin
-    pub num_spins: usize,
+
+    pub wheel: Wheel,
 }
 
 #[derive(Debug)]
@@ -152,15 +170,11 @@ impl Default for App {
             all_participants: StatefulList::new(names),
             all_winners: vec![],
             spinning: false,
-            spin_count: 0,
-            num_spins: 0,
             current_screen: CurrentScreen::Main,
             currently_editing: None,
             name_input: String::new(),
-            angle: 0.0,
-            d_angle: 5.0,
-            angle_change: 5.0,
             show_contestants: true,
+            wheel: Wheel::default(),
         }
     }
 }
@@ -180,27 +194,27 @@ impl App {
             self.all_participants.state.select(Some(0));
         }
 
-        self.angle = self.index_to_angle(self.all_participants.state.selected().unwrap_or(0));
+        self.wheel.angle = self.index_to_angle(self.all_participants.state.selected().unwrap_or(0));
         let number_of_participants = self.all_participants.items.len();
         let min_spins = (number_of_participants * 50).max(300);
         let max_spins = (number_of_participants * 80).max(500);
 
-        self.spin_count = thread_rng().gen_range(min_spins..max_spins);
-        self.num_spins = self.spin_count;
+        self.wheel.spin_count = thread_rng().gen_range(min_spins..max_spins);
+        self.wheel.num_spins = self.wheel.spin_count;
 
         self.spinning = true;
     }
 
     pub fn stop_spin(&mut self) {
         self.spinning = false;
-        self.num_spins = 0;
-        self.spin_count = 0;
-        self.d_angle = self.angle_change;
+        self.wheel.num_spins = 0;
+        self.wheel.spin_count = 0;
+        self.wheel.d_angle = self.wheel.angle_change;
     }
 
     pub fn reset_spin(&mut self) {
-        self.spin_count = 0;
-        self.num_spins = 0;
+        self.wheel.spin_count = 0;
+        self.wheel.num_spins = 0;
         self.stop_spin();
     }
 
@@ -209,14 +223,14 @@ impl App {
             return;
         }
 
-        if self.spin_count > 0 {
-            self.spin_count -= 1;
+        if self.wheel.spin_count > 0 {
+            self.wheel.spin_count -= 1;
             self.all_participants
                 .select(self.currently_winning_index().into());
 
             // Slow down the spinner after half of the ticks
-            if self.spin_count < self.num_spins / 2 {
-                self.d_angle -= self.angle_change / (self.num_spins / 2) as f64;
+            if self.wheel.spin_count < self.wheel.num_spins / 2 {
+                self.wheel.d_angle -= self.wheel.angle_change / (self.wheel.num_spins / 2) as f64;
             }
             return;
         }
@@ -229,7 +243,7 @@ impl App {
 
     pub fn currently_winning_index(&self) -> usize {
         let d = 360.0 / self.all_participants.items.len() as f64;
-        (self.angle / d).floor() as usize
+        (self.wheel.angle / d).floor() as usize
     }
 
     pub fn index_to_angle(&self, index: usize) -> f64 {
@@ -247,9 +261,9 @@ impl App {
     }
 
     pub fn increase_angle(&mut self) {
-        self.angle += self.d_angle;
-        if self.angle >= 360.0 {
-            self.angle -= 360.0;
+        self.wheel.angle += self.wheel.d_angle;
+        if self.wheel.angle >= 360.0 {
+            self.wheel.angle -= 360.0;
         }
     }
 
