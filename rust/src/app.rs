@@ -11,6 +11,7 @@ pub type AppResult<T> = std::result::Result<T, Box<dyn error::Error>>;
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
 pub struct Cli {
+    /// path to a text file with names of contestants (1 per line)
     names: Option<String>,
 }
 
