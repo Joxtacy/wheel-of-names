@@ -1,0 +1,76 @@
+name: Release
+on:
+  push:
+    branches:
+      - main
+env:
+  CARGO_INCREMENTAL: 0
+  CARGO_NET_RETRY: 10
+  RUST_BACKTRACE: short
+  RUSTUP_MAX_RETRIES: 10
+  MACOSX_DEPLOYMENT_TARGET: 10.7
+
+jobs:
+  github_build:
+    name: Build release binaries
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+            name: wheel-of-names-x86_64-unknown-linux-gnu.tar.gz
+
+          - target: aarch64-unknown-linux-musl
+            os: ubuntu-latest
+            name: wheel-of-names-aarch64-unknown-linux-musl.tar.gz
+
+          - target: x86_64-apple-darwin
+            os: macos-latest
+            name: wheel-of-names-x86_64-apple-darwin.tar.gz
+
+          - target: aarch64-apple-darwin
+            os: macos-latest
+            name: wheel-of-names-aarch64-apple-darwin.tar.gz
+
+    runs-on: ${{ matrix.os }}
+    continue-on-error: true
+    env:
+      RUSTFLAGS: ${{ matrix.rustflags || '' }}
+    steps:
+      - name: Setup | Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup | Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          target: ${{ matrix.target }}
+
+      - name: Setup | Install cross [Linux]
+        if: matrix.os == 'ubuntu-latest'
+        uses: taiki-e/install-action@cross
+
+      - name: Build | Build [Cargo]
+        if: matrix.os != 'ubuntu-latest'
+        working-directory: ./rust
+        run: cargo build --release --locked --target ${{ matrix.target }}
+
+      - name: Build | Build [Cross]
+        if: matrix.os == 'ubuntu-latest'
+        working-directory: ./rust
+        run: cross build --release --locked --target ${{ matrix.target }}
+
+      - name: Post Build | Prepare artifacts [-nix]
+        if: matrix.os != 'windows-latest'
+        working-directory: ./rust
+        run: |
+          cd target/${{ matrix.target }}/release
+          tar czvf ../../../${{ matrix.name }} wheel-of-names
+          cd -
+
+      - name: Release | Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.name }}
+          path: rust/${{ matrix.name }}
