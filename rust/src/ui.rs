@@ -4,7 +4,7 @@ use ratatui::{
     symbols::Marker,
     widgets::{
         canvas::{Canvas, Line},
-        Block, BorderType, Borders, List, ListItem, Padding, Paragraph,
+        Block, BorderType, Borders, Clear, List, ListItem, Padding, Paragraph,
     },
     Frame,
 };
@@ -66,6 +66,7 @@ pub fn render(app: &mut App, frame: &mut Frame) {
 fn render_editing_name(frame: &mut Frame, app: &mut App) {
     let popup_block = Block::new().title("Enter a new name").bg(Color::DarkGray);
     let area = centerd_rect(15, 10, frame.size());
+    frame.render_widget(Clear, area);
     frame.render_widget(popup_block, area);
 
     let popup_chunks = Layout::default()
