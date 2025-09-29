@@ -1,5 +1,9 @@
 use core::panic;
-use std::{error, fs::File, io::Read};
+use std::{
+    error,
+    fs::File,
+    io::{self, Read, Write},
+};
 
 use clap::Parser;
 use rand::{thread_rng, Rng};
@@ -19,11 +23,13 @@ pub struct Cli {
 pub enum CurrentScreen {
     Main,
     Adding,
+    Saving,
 }
 
 #[derive(Debug)]
 pub enum CurrentlyEditing {
     Name,
+    Filename,
 }
 
 #[derive(Debug)]
@@ -259,6 +265,19 @@ impl App {
             }
             self.name_input = String::new();
         }
+    }
+
+    pub fn save_to_file(&mut self) -> io::Result<()> {
+        if let Some(filename) = self.name_input.trim().to_string().into() {
+            if !filename.is_empty() {
+                let mut file = File::create(filename)?;
+                for contestant in self.all_participants.items.iter() {
+                    writeln!(file, "{contestant}")?;
+                }
+            }
+            self.name_input = String::new();
+        }
+        Ok(())
     }
 
     pub fn increase_angle(&mut self) {

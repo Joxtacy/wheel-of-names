@@ -22,6 +22,25 @@ pub fn handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResult<()> {
             // Other handlers you could add here.
             _ => {}
         },
+        Some(CurrentlyEditing::Filename) => match key_event.code {
+            KeyCode::Enter => {
+                app.currently_editing = None;
+                // TODO: Handle error in a nice way
+                let _ = app.save_to_file();
+            }
+            KeyCode::Char(value) => {
+                app.name_input.push(value);
+            }
+            KeyCode::Backspace => {
+                app.name_input.pop();
+            }
+            KeyCode::Esc => {
+                app.currently_editing = None;
+                app.name_input.clear();
+            }
+            _ => {}
+        },
+
         None => {
             match key_event.code {
                 // Exit application on `ESC` or `q`
@@ -48,11 +67,16 @@ pub fn handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResult<()> {
                             app.index_to_angle(app.all_participants.state.selected().unwrap_or(0));
                     }
                 }
-                KeyCode::Enter | KeyCode::Char('s') => {
+                KeyCode::Enter => {
                     if !app.spinning {
                         app.wheel.angle =
                             app.index_to_angle(app.all_participants.state.selected().unwrap_or(0));
                         app.start_spin();
+                    }
+                }
+                KeyCode::Char('s') => {
+                    if !app.spinning {
+                        app.currently_editing = Some(CurrentlyEditing::Filename);
                     }
                 }
                 KeyCode::Backspace | KeyCode::Char('r') => {

@@ -59,6 +59,9 @@ pub fn render(app: &mut App, frame: &mut Frame) {
             CurrentlyEditing::Name => {
                 render_editing_name(frame, app);
             }
+            CurrentlyEditing::Filename => {
+                render_editing_filename(frame, app);
+            }
         }
     }
 }
@@ -79,6 +82,24 @@ fn render_editing_name(frame: &mut Frame, app: &mut App) {
 
     let name_text = Paragraph::new(app.name_input.clone()).block(name_block);
     frame.render_widget(name_text, popup_chunks[0]);
+}
+
+fn render_editing_filename(frame: &mut Frame, app: &mut App) {
+    let popup_block = Block::new().title("Enter a filename").bg(Color::DarkGray);
+    let area = centerd_rect(15, 10, frame.size());
+    frame.render_widget(Clear, area);
+    frame.render_widget(popup_block, area);
+
+    let popup_chunks = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([Constraint::Percentage(100)])
+        .margin(1)
+        .split(area);
+
+    let name_block = Block::default().title("Filename").borders(Borders::ALL);
+
+    let filename_text = Paragraph::new(app.name_input.clone()).block(name_block);
+    frame.render_widget(filename_text, popup_chunks[0]);
 }
 
 fn render_title(frame: &mut Frame, area: Rect) {
@@ -172,12 +193,13 @@ fn render_help(frame: &mut Frame, area: Rect) {
         .border_type(BorderType::Rounded);
     let help = Paragraph::new(vec![
         "Esc/q - Quit".into(),
-        "Enter/s - Start spin".into(),
+        "Enter - Start spin".into(),
         "Backspace/r - Reset spin".into(),
         "j/down - Select next".into(),
         "k/up - Select previous".into(),
         "Del/x - Remove selected".into(),
         "Tab - Show/hide contestants".into(),
+        "s - Save contestants to file".into(),
     ])
     .block(help);
     frame.render_widget(help, area);
