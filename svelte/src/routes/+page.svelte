@@ -93,26 +93,28 @@
 				0,
 				0,
 				wheelRadius,
-				i * degreesToRadians(contestantAngle) + degreesToRadians(angle),
-				(i + 1) * degreesToRadians(contestantAngle) + degreesToRadians(angle),
+				i * degreesToRadians(contestantAngle) -
+					degreesToRadians(contestantAngle / 2) +
+					degreesToRadians(angle),
+				(i + 1) * degreesToRadians(contestantAngle) -
+					degreesToRadians(contestantAngle / 2) +
+					degreesToRadians(angle),
 				false,
 			);
 			ctx.fill();
+		}
+
+		for (let i = 0; i < numContestants; i++) {
 			ctx.fillStyle = "white";
 			ctx.textAlign = "right";
 			ctx.fillText(
 				contestantsArray[i],
-				wheelRadius *
-					Math.cos(
-						degreesToRadians(i * contestantAngle + contestantAngle / 2 - angle),
-					),
-				wheelRadius *
-					Math.sin(
-						degreesToRadians(i * contestantAngle + contestantAngle / 2 - angle),
-					),
+				wheelRadius * Math.cos(degreesToRadians(angle)),
+				wheelRadius * Math.sin(degreesToRadians(angle)),
 			);
+			ctx.rotate(degreesToRadians(contestantAngle));
 		}
-		drawWinnerMarker(ctx);
+		// drawWinnerMarker(ctx);
 		if (spinning && mainAngle < endingAngle) {
 			if (mainAngle > endingAngle / 2) {
 				angleD = Math.max(angleD - 0.5, 0.1);
