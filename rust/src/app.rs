@@ -3,6 +3,7 @@ use std::{
     error,
     fs::File,
     io::{self, Read, Write},
+    path::PathBuf,
 };
 
 use clap::Parser;
@@ -16,7 +17,7 @@ pub type AppResult<T> = std::result::Result<T, Box<dyn error::Error>>;
 #[command(version, about, long_about = None)]
 pub struct Cli {
     /// path to a text file with names of contestants (1 per line)
-    names: Option<String>,
+    names: Option<PathBuf>,
 }
 
 #[derive(Debug)]
@@ -73,6 +74,8 @@ pub struct App {
     pub current_screen: CurrentScreen,
     pub currently_editing: Option<CurrentlyEditing>,
     pub name_input: String,
+    pub filename: PathBuf,
+    pub filename_input: String,
 
     /// Show contestants
     pub show_contestants: bool,
@@ -147,15 +150,15 @@ impl Default for App {
     fn default() -> Self {
         let cli = Cli::parse();
 
-        let names = if let Some(names) = cli.names {
-            let res = File::open(&names);
+        let names = if let Some(ref names) = cli.names {
+            let res = File::open(names);
             if let Ok(mut file) = res {
                 let mut contents = String::new();
                 file.read_to_string(&mut contents)
                     .expect("to be able to read from file");
                 contents.lines().map(|s| s.to_string()).collect()
             } else {
-                panic!("Could not open file: {}", &names);
+                panic!("Could not open file: {:?}", names.as_os_str());
             }
         } else {
             vec![
@@ -182,6 +185,18 @@ impl Default for App {
             name_input: String::new(),
             show_contestants: true,
             wheel: Wheel::default(),
+            filename: cli
+                .names
+                .clone()
+                .unwrap_or(PathBuf::from("contestants.txt")),
+            filename_input: cli.names.map_or(
+                PathBuf::from("contestants.txt")
+                    .into_os_string()
+                    .into_string()
+                    .expect("Given string to work as path")
+                    .to_string(),
+                |pb| pb.into_os_string().into_string().expect("Filename to work"),
+            ),
         }
     }
 }
@@ -268,14 +283,11 @@ impl App {
     }
 
     pub fn save_to_file(&mut self) -> io::Result<()> {
-        if let Some(filename) = self.name_input.trim().to_string().into() {
-            if !filename.is_empty() {
-                let mut file = File::create(filename)?;
-                for contestant in self.all_participants.items.iter() {
-                    writeln!(file, "{contestant}")?;
-                }
+        if !&self.filename_input.trim().is_empty() {
+            let mut file = File::create(&self.filename_input)?;
+            for contestant in self.all_participants.items.iter() {
+                writeln!(file, "{contestant}")?;
             }
-            self.name_input = String::new();
         }
         Ok(())
     }

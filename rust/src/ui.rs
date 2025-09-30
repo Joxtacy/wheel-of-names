@@ -98,7 +98,7 @@ fn render_editing_filename(frame: &mut Frame, app: &mut App) {
 
     let name_block = Block::default().title("Filename").borders(Borders::ALL);
 
-    let filename_text = Paragraph::new(app.name_input.clone()).block(name_block);
+    let filename_text = Paragraph::new(app.filename_input.clone()).block(name_block);
     frame.render_widget(filename_text, popup_chunks[0]);
 }
 

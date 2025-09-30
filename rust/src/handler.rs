@@ -29,14 +29,13 @@ pub fn handle_key_events(key_event: KeyEvent, app: &mut App) -> AppResult<()> {
                 let _ = app.save_to_file();
             }
             KeyCode::Char(value) => {
-                app.name_input.push(value);
+                app.filename_input.push(value);
             }
             KeyCode::Backspace => {
-                app.name_input.pop();
+                app.filename_input.pop();
             }
             KeyCode::Esc => {
                 app.currently_editing = None;
-                app.name_input.clear();
             }
             _ => {}
         },
